@@ -9,61 +9,68 @@ local camera = workspace.CurrentCamera
 -- GUI
 -------------------------------------------------
 local gui = Instance.new("ScreenGui")
-gui.Name = "DevHub"
+gui.Name = "UltimateHub"
 gui.ResetOnSpawn = false
 gui.Parent = player:WaitForChild("PlayerGui")
 
 local frame = Instance.new("Frame")
 frame.Parent = gui
-frame.Size = UDim2.new(0, 320, 0, 260)
-frame.Position = UDim2.new(0.5, -160, 0.5, -130)
-frame.BackgroundColor3 = Color3.fromRGB(20,20,20)
+frame.Size = UDim2.new(0, 300, 0, 320)
+frame.Position = UDim2.new(0.5, -150, 0.5, -160)
+frame.BackgroundColor3 = Color3.fromRGB(25,25,25)
 frame.Active = true
 frame.Draggable = true
 
-Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 10)
+Instance.new("UICorner", frame).CornerRadius = UDim.new(0,10)
 
 -------------------------------------------------
--- MINIMIZAR
+-- TITLE
 -------------------------------------------------
-local mini = Instance.new("TextButton")
-mini.Parent = frame
-mini.Size = UDim2.new(0,30,0,30)
-mini.Position = UDim2.new(1,-35,0,5)
-mini.Text = "-"
-mini.BackgroundColor3 = Color3.fromRGB(255,170,0)
+local title = Instance.new("TextLabel")
+title.Parent = frame
+title.Size = UDim2.new(1,0,0,40)
+title.BackgroundTransparency = 1
+title.Text = "ULTIMATE HUB"
+title.TextColor3 = Color3.new(1,1,1)
+title.Font = Enum.Font.GothamBold
+title.TextSize = 16
 
-local openBtn = Instance.new("TextButton")
-openBtn.Parent = gui
-openBtn.Size = UDim2.new(0,60,0,60)
-openBtn.Position = UDim2.new(0,10,0.5,-30)
-openBtn.Text = "OPEN"
-openBtn.Visible = false
+-------------------------------------------------
+-- STATES
+-------------------------------------------------
+local fly, esp, aura = false, false, false
+local speed = 60
 
-local minimized = false
-mini.MouseButton1Click:Connect(function()
-	minimized = not minimized
-	frame.Visible = not minimized
-	openBtn.Visible = minimized
-end)
+-------------------------------------------------
+-- CREATE BUTTON FUNCTION
+-------------------------------------------------
+local function makeButton(text, posY, color)
+	local b = Instance.new("TextButton")
+	b.Parent = frame
+	b.Size = UDim2.new(0.85,0,0,40)
+	b.Position = UDim2.new(0.075,0,posY,0)
+	b.Text = text
+	b.BackgroundColor3 = color
+	b.TextColor3 = Color3.new(1,1,1)
+	b.Font = Enum.Font.GothamBold
+	b.TextSize = 14
+	return b
+end
 
-openBtn.MouseButton1Click:Connect(function()
-	minimized = false
-	frame.Visible = true
-	openBtn.Visible = false
-end)
+-------------------------------------------------
+-- BUTTONS
+-------------------------------------------------
+local flyBtn = makeButton("FLY OFF", 0.15, Color3.fromRGB(0,255,120))
+local espBtn = makeButton("ESP OFF", 0.35, Color3.fromRGB(0,170,255))
+local auraBtn = makeButton("AURA OFF", 0.55, Color3.fromRGB(255,80,80))
+local tpBtn = makeButton("TP LOW HP", 0.75, Color3.fromRGB(255,170,0))
 
 -------------------------------------------------
 -- TP LOW HP
 -------------------------------------------------
-local tpBtn = Instance.new("TextButton")
-tpBtn.Parent = frame
-tpBtn.Size = UDim2.new(0.85,0,0,40)
-tpBtn.Position = UDim2.new(0.075,0,0.1,0)
-tpBtn.Text = "TP LOW HP"
-
 local function getLow()
 	local target, hp = nil, math.huge
+
 	for _,p in pairs(Players:GetPlayers()) do
 		if p ~= player and p.Character then
 			local h = p.Character:FindFirstChild("Humanoid")
@@ -73,114 +80,47 @@ local function getLow()
 			end
 		end
 	end
+
 	return target
 end
 
 tpBtn.MouseButton1Click:Connect(function()
 	local t = getLow()
 	if t and t.Character and player.Character then
-		player.Character:MoveTo(t.Character.HumanoidRootPart.Position + Vector3.new(0,3,0))
-	end
-end)
+		local root = player.Character:FindFirstChild("HumanoidRootPart")
+		local tRoot = t.Character:FindFirstChild("HumanoidRootPart")
 
--------------------------------------------------
--- FLY
--------------------------------------------------
-local flyBtn = Instance.new("TextButton")
-flyBtn.Parent = frame
-flyBtn.Size = UDim2.new(0.85,0,0,40)
-flyBtn.Position = UDim2.new(0.075,0,0.3,0)
-flyBtn.Text = "FLY OFF"
-
-local flying = false
-local bv, bg
-
-local function startFly()
-	local char = player.Character
-	local hrp = char and char:FindFirstChild("HumanoidRootPart")
-	if not hrp then return end
-
-	flying = true
-
-	bg = Instance.new("BodyGyro")
-	bg.MaxTorque = Vector3.new(9e9,9e9,9e9)
-	bg.Parent = hrp
-
-	bv = Instance.new("BodyVelocity")
-	bv.MaxForce = Vector3.new(9e9,9e9,9e9)
-	bv.Parent = hrp
-
-	RunService.RenderStepped:Connect(function()
-		if flying then
-			bg.CFrame = camera.CFrame
-
-			local move = Vector3.zero
-			if UIS:IsKeyDown(Enum.KeyCode.W) then move += camera.CFrame.LookVector end
-			if UIS:IsKeyDown(Enum.KeyCode.S) then move -= camera.CFrame.LookVector end
-			if UIS:IsKeyDown(Enum.KeyCode.A) then move -= camera.CFrame.RightVector end
-			if UIS:IsKeyDown(Enum.KeyCode.D) then move += camera.CFrame.RightVector end
-
-			bv.Velocity = move * 60
+		if root and tRoot then
+			root.CFrame = tRoot.CFrame + Vector3.new(0,3,0)
 		end
-	end)
-end
-
-local function stopFly()
-	flying = false
-	if bv then bv:Destroy() end
-	if bg then bg:Destroy() end
-end
-
-flyBtn.MouseButton1Click:Connect(function()
-	if flying then
-		stopFly()
-		flyBtn.Text = "FLY OFF"
-	else
-		startFly()
-		flyBtn.Text = "FLY ON"
 	end
 end)
 
 -------------------------------------------------
--- ESP VIDA + LINE
+-- ESP
 -------------------------------------------------
-local espEnabled = true
-local lines = {}
-
 local function createESP(plr)
-	local billboard = Instance.new("BillboardGui")
-	billboard.Size = UDim2.new(0,100,0,40)
-	billboard.AlwaysOnTop = true
+	local bb = Instance.new("BillboardGui")
+	bb.Size = UDim2.new(0,100,0,40)
+	bb.AlwaysOnTop = true
 
-	local text = Instance.new("TextLabel")
-	text.Size = UDim2.new(1,0,1,0)
-	text.BackgroundTransparency = 1
-	text.TextColor3 = Color3.fromRGB(0,255,0)
-	text.TextScaled = true
-	text.Parent = billboard
-
-	local line = Drawing and Drawing.new("Line") or nil
+	local txt = Instance.new("TextLabel")
+	txt.Parent = bb
+	txt.Size = UDim2.new(1,0,1,0)
+	txt.BackgroundTransparency = 1
+	txt.TextColor3 = Color3.fromRGB(0,255,0)
+	txt.TextScaled = true
 
 	RunService.RenderStepped:Connect(function()
-		if plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
-			local hrp = plr.Character.HumanoidRootPart
+		if esp and plr.Character and plr.Character:FindFirstChild("Head") then
 			local hum = plr.Character:FindFirstChild("Humanoid")
 
 			if hum then
-				text.Text = plr.Name .. " HP: " .. math.floor(hum.Health)
-
-				billboard.Parent = plr.Character.Head
-				billboard.Adornee = plr.Character.Head
+				txt.Text = plr.Name.." | HP: "..math.floor(hum.Health)
+				bb.Parent = plr.Character.Head
 			end
-
-			if line then
-				local pos, vis = camera:WorldToViewportPoint(hrp.Position)
-				if vis then
-					line.From = Vector2.new(camera.ViewportSize.X/2, camera.ViewportSize.Y)
-					line.To = Vector2.new(pos.X, pos.Y)
-					line.Color = Color3.fromRGB(255,0,0)
-				end
-			end
+		else
+			bb.Parent = nil
 		end
 	end)
 end
@@ -194,4 +134,86 @@ end
 Players.PlayerAdded:Connect(function(p)
 	task.wait(1)
 	createESP(p)
+end)
+
+espBtn.MouseButton1Click:Connect(function()
+	esp = not esp
+	espBtn.Text = esp and "ESP ON" or "ESP OFF"
+end)
+
+-------------------------------------------------
+-- AURA (DAMAGE)
+-------------------------------------------------
+RunService.RenderStepped:Connect(function()
+	if not aura then return end
+
+	local char = player.Character
+	if not char then return end
+
+	local root = char:FindFirstChild("HumanoidRootPart")
+	if not root then return end
+
+	for _,p in pairs(Players:GetPlayers()) do
+		if p ~= player and p.Character then
+			local hrp = p.Character:FindFirstChild("HumanoidRootPart")
+			local hum = p.Character:FindFirstChild("Humanoid")
+
+			if hrp and hum and hum.Health > 0 then
+				if (root.Position - hrp.Position).Magnitude <= 10 then
+					hum:TakeDamage(5)
+				end
+			end
+		end
+	end
+end)
+
+auraBtn.MouseButton1Click:Connect(function()
+	aura = not aura
+	auraBtn.Text = aura and "AURA ON" or "AURA OFF"
+end)
+
+-------------------------------------------------
+-- FLY (STABLE)
+-------------------------------------------------
+local flying = false
+local bv, bg
+
+flyBtn.MouseButton1Click:Connect(function()
+	flying = not flying
+	flyBtn.Text = flying and "FLY ON" or "FLY OFF"
+
+	local char = player.Character
+	local hrp = char and char:FindFirstChild("HumanoidRootPart")
+	local hum = char and char:FindFirstChild("Humanoid")
+
+	if flying then
+		if hum then hum.PlatformStand = true end
+
+		bg = Instance.new("BodyGyro")
+		bg.MaxTorque = Vector3.new(9e9,9e9,9e9)
+		bg.Parent = hrp
+
+		bv = Instance.new("BodyVelocity")
+		bv.MaxForce = Vector3.new(9e9,9e9,9e9)
+		bv.Parent = hrp
+
+		RunService.RenderStepped:Connect(function()
+			if flying and hrp then
+				bg.CFrame = camera.CFrame
+
+				local move = Vector3.zero
+
+				if UIS:IsKeyDown(Enum.KeyCode.W) then move += camera.CFrame.LookVector end
+				if UIS:IsKeyDown(Enum.KeyCode.S) then move -= camera.CFrame.LookVector end
+				if UIS:IsKeyDown(Enum.KeyCode.A) then move -= camera.CFrame.RightVector end
+				if UIS:IsKeyDown(Enum.KeyCode.D) then move += camera.CFrame.RightVector end
+
+				bv.Velocity = move * speed
+			end
+		end)
+	else
+		if hum then hum.PlatformStand = false end
+		if bv then bv:Destroy() end
+		if bg then bg:Destroy() end
+	end
 end)
