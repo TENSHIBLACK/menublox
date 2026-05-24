@@ -8,15 +8,15 @@ local player = Players.LocalPlayer
 -- GUI
 -------------------------------------------------
 local gui = Instance.new("ScreenGui")
-gui.Name = "FullHub"
+gui.Name = "FullHubFinal"
 gui.ResetOnSpawn = false
 gui.Parent = player:WaitForChild("PlayerGui")
 
 local frame = Instance.new("Frame")
 frame.Parent = gui
-frame.Size = UDim2.new(0, 300, 0, 360)
-frame.Position = UDim2.new(0.5, -150, 0.5, -180)
-frame.BackgroundColor3 = Color3.fromRGB(20,20,20)
+frame.Size = UDim2.new(0, 320, 0, 380)
+frame.Position = UDim2.new(0.5, -160, 0.5, -190)
+frame.BackgroundColor3 = Color3.fromRGB(25,25,25)
 frame.Active = true
 frame.Draggable = true
 
@@ -28,7 +28,7 @@ Instance.new("UICorner", frame).CornerRadius = UDim.new(0,10)
 local top = Instance.new("Frame")
 top.Parent = frame
 top.Size = UDim2.new(1,0,0,35)
-top.BackgroundColor3 = Color3.fromRGB(35,35,35)
+top.BackgroundColor3 = Color3.fromRGB(40,40,40)
 
 Instance.new("UICorner", top).CornerRadius = UDim.new(0,10)
 
@@ -36,13 +36,13 @@ local title = Instance.new("TextLabel")
 title.Parent = top
 title.Size = UDim2.new(1,0,1,0)
 title.BackgroundTransparency = 1
-title.Text = "FULL HUB"
+title.Text = "FULL HUB PRO"
 title.TextColor3 = Color3.new(1,1,1)
 title.Font = Enum.Font.GothamBold
 title.TextSize = 16
 
 -------------------------------------------------
--- MINIMIZAR
+-- MINIMIZE
 -------------------------------------------------
 local minimized = false
 
@@ -78,12 +78,13 @@ local speedOn = false
 local espOn = false
 local auraOn = false
 local jumpOn = false
+local noclipOn = false
 
 local NORMAL_SPEED = 16
 local BOOST_SPEED = 120
 
 -------------------------------------------------
--- BUTTONS
+-- BUTTON FACTORY
 -------------------------------------------------
 local function makeButton(text, y, color)
 	local b = Instance.new("TextButton")
@@ -98,19 +99,19 @@ local function makeButton(text, y, color)
 	return b
 end
 
-local speedBtn = makeButton("SPEED OFF", 0.12, Color3.fromRGB(255,170,0))
-local espBtn = makeButton("ESP OFF", 0.28, Color3.fromRGB(0,170,255))
-local auraBtn = makeButton("AURA OFF", 0.44, Color3.fromRGB(255,80,80))
-local jumpBtn = makeButton("JUMP OFF", 0.60, Color3.fromRGB(120,120,255))
-local tpBtn = makeButton("TP LOW HP", 0.76, Color3.fromRGB(200,200,200))
+local speedBtn = makeButton("SPEED OFF", 0.10, Color3.fromRGB(255,170,0))
+local espBtn = makeButton("ESP OFF", 0.22, Color3.fromRGB(0,170,255))
+local auraBtn = makeButton("AURA OFF", 0.34, Color3.fromRGB(255,80,80))
+local jumpBtn = makeButton("JUMP OFF", 0.46, Color3.fromRGB(120,120,255))
+local tpBtn = makeButton("TP LOW HP", 0.58, Color3.fromRGB(200,200,200))
+local noclipBtn = makeButton("NOCLIP OFF", 0.70, Color3.fromRGB(180,0,255))
 
 -------------------------------------------------
--- SPEED (FIXADO)
+-- SPEED FIX
 -------------------------------------------------
-local function updateSpeed()
+local function applySpeed()
 	local char = player.Character
-	local hum = char and char:FindFirstChild("Humanoid")
-
+	local hum = char and char:FindFirstChildOfClass("Humanoid")
 	if hum then
 		hum.WalkSpeed = speedOn and BOOST_SPEED or NORMAL_SPEED
 	end
@@ -119,16 +120,16 @@ end
 speedBtn.MouseButton1Click:Connect(function()
 	speedOn = not speedOn
 	speedBtn.Text = speedOn and "SPEED ON" or "SPEED OFF"
-	updateSpeed()
+	applySpeed()
 end)
 
-player.CharacterAdded:Connect(function()
-	task.wait(0.5)
-	updateSpeed()
+player.CharacterAdded:Connect(function(char)
+	task.wait(0.3)
+	applySpeed()
 end)
 
 -------------------------------------------------
--- JUMP INFINITO
+-- JUMP
 -------------------------------------------------
 jumpBtn.MouseButton1Click:Connect(function()
 	jumpOn = not jumpOn
@@ -136,29 +137,23 @@ jumpBtn.MouseButton1Click:Connect(function()
 end)
 
 UIS.JumpRequest:Connect(function()
-	if not jumpOn then return end
-
-	local char = player.Character
-	local hum = char and char:FindFirstChild("Humanoid")
-
-	if hum then
-		hum:ChangeState(Enum.HumanoidStateType.Jumping)
+	if jumpOn then
+		local hum = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
+		if hum then hum:ChangeState(Enum.HumanoidStateType.Jumping) end
 	end
 end)
 
 -------------------------------------------------
 -- TP LOW HP
 -------------------------------------------------
-local function getLowHP()
-	local target = nil
-	local lowest = math.huge
+local function getLow()
+	local target, hp = nil, math.huge
 
 	for _,p in pairs(Players:GetPlayers()) do
 		if p ~= player and p.Character then
-			local hum = p.Character:FindFirstChild("Humanoid")
-
-			if hum and hum.Health > 0 and hum.Health < lowest then
-				lowest = hum.Health
+			local h = p.Character:FindFirstChildOfClass("Humanoid")
+			if h and h.Health > 0 and h.Health < hp then
+				hp = h.Health
 				target = p
 			end
 		end
@@ -168,8 +163,7 @@ local function getLowHP()
 end
 
 tpBtn.MouseButton1Click:Connect(function()
-	local t = getLowHP()
-
+	local t = getLow()
 	if t and t.Character and player.Character then
 		local r = player.Character:FindFirstChild("HumanoidRootPart")
 		local tr = t.Character:FindFirstChild("HumanoidRootPart")
@@ -181,30 +175,56 @@ tpBtn.MouseButton1Click:Connect(function()
 end)
 
 -------------------------------------------------
--- ESP (OPTIMIZADO)
+-- ESP + BEAM LINE (STUDIO SAFE)
 -------------------------------------------------
 local function createESP(plr)
+	local beam = Instance.new("Beam")
+
+	local a0 = Instance.new("Attachment")
+	local a1 = Instance.new("Attachment")
+
 	local bb = Instance.new("BillboardGui")
 	bb.Size = UDim2.new(0,100,0,40)
 	bb.AlwaysOnTop = true
 
 	local txt = Instance.new("TextLabel")
-	txt.Parent = bb
 	txt.Size = UDim2.new(1,0,1,0)
 	txt.BackgroundTransparency = 1
 	txt.TextColor3 = Color3.fromRGB(0,255,0)
 	txt.TextScaled = true
+	txt.Parent = bb
 
 	RunService.RenderStepped:Connect(function()
-		if espOn and plr.Character and plr.Character:FindFirstChild("Head") then
-			local hum = plr.Character:FindFirstChild("Humanoid")
-
-			if hum then
-				txt.Text = plr.Name.." | "..math.floor(hum.Health)
-				bb.Parent = plr.Character.Head
-			end
-		else
+		if not espOn then
 			bb.Parent = nil
+			beam.Enabled = false
+			return
+		end
+
+		local char = plr.Character
+		local myChar = player.Character
+
+		if not char or not myChar then return end
+
+		local head = char:FindFirstChild("Head")
+		local myHead = myChar:FindFirstChild("Head")
+
+		local hum = char:FindFirstChildOfClass("Humanoid")
+
+		if head and myHead and hum then
+			txt.Text = plr.Name.." | "..math.floor(hum.Health)
+			bb.Parent = head
+
+			a0.Parent = myHead
+			a1.Parent = head
+
+			beam.Attachment0 = a0
+			beam.Attachment1 = a1
+			beam.Color = ColorSequence.new(Color3.fromRGB(0,255,180))
+			beam.Width0 = 0.1
+			beam.Width1 = 0.1
+			beam.Enabled = true
+			beam.Parent = workspace.Terrain
 		end
 	end)
 end
@@ -226,7 +246,7 @@ espBtn.MouseButton1Click:Connect(function()
 end)
 
 -------------------------------------------------
--- AURA (SEM LAG PESADO)
+-- AURA
 -------------------------------------------------
 RunService.RenderStepped:Connect(function()
 	if not auraOn then return end
@@ -240,7 +260,7 @@ RunService.RenderStepped:Connect(function()
 	for _,p in pairs(Players:GetPlayers()) do
 		if p ~= player and p.Character then
 			local hrp = p.Character:FindFirstChild("HumanoidRootPart")
-			local hum = p.Character:FindFirstChild("Humanoid")
+			local hum = p.Character:FindFirstChildOfClass("Humanoid")
 
 			if hrp and hum and hum.Health > 0 then
 				if (root.Position - hrp.Position).Magnitude <= 10 then
@@ -254,4 +274,25 @@ end)
 auraBtn.MouseButton1Click:Connect(function()
 	auraOn = not auraOn
 	auraBtn.Text = auraOn and "AURA ON" or "AURA OFF"
+end)
+
+-------------------------------------------------
+-- NOCLIP
+-------------------------------------------------
+noclipBtn.MouseButton1Click:Connect(function()
+	noclipOn = not noclipOn
+	noclipBtn.Text = noclipOn and "NOCLIP ON" or "NOCLIP OFF"
+end)
+
+RunService.Stepped:Connect(function()
+	if noclipOn then
+		local char = player.Character
+		if char then
+			for _,v in pairs(char:GetDescendants()) do
+				if v:IsA("BasePart") then
+					v.CanCollide = false
+				end
+			end
+		end
+	end
 end)
