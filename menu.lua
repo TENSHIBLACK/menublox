@@ -3,20 +3,19 @@ local UIS = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 
 local player = Players.LocalPlayer
-local camera = workspace.CurrentCamera
 
 -------------------------------------------------
 -- GUI
 -------------------------------------------------
 local gui = Instance.new("ScreenGui")
-gui.Name = "UltimateHub"
+gui.Name = "StableHub"
 gui.ResetOnSpawn = false
 gui.Parent = player:WaitForChild("PlayerGui")
 
 local frame = Instance.new("Frame")
 frame.Parent = gui
-frame.Size = UDim2.new(0, 320, 0, 360)
-frame.Position = UDim2.new(0.5, -160, 0.5, -180)
+frame.Size = UDim2.new(0, 300, 0, 320)
+frame.Position = UDim2.new(0.5, -150, 0.5, -160)
 frame.BackgroundColor3 = Color3.fromRGB(25,25,25)
 frame.Active = true
 frame.Draggable = true
@@ -24,7 +23,7 @@ frame.Draggable = true
 Instance.new("UICorner", frame).CornerRadius = UDim.new(0,10)
 
 -------------------------------------------------
--- TOP BAR
+-- TOP BAR + MINIMIZE
 -------------------------------------------------
 local top = Instance.new("Frame")
 top.Parent = frame
@@ -37,14 +36,11 @@ local title = Instance.new("TextLabel")
 title.Parent = top
 title.Size = UDim2.new(1,0,1,0)
 title.BackgroundTransparency = 1
-title.Text = "ULTIMATE HUB"
+title.Text = "STABLE HUB"
 title.TextColor3 = Color3.new(1,1,1)
 title.Font = Enum.Font.GothamBold
 title.TextSize = 16
 
--------------------------------------------------
--- MINIMIZAR
--------------------------------------------------
 local minimized = false
 
 local miniBtn = Instance.new("TextButton")
@@ -75,9 +71,13 @@ end)
 -------------------------------------------------
 -- CONFIG
 -------------------------------------------------
-local fly, esp, aura = false, false, false
-local speed = 50
+local esp = false
+local aura = false
+local speedEnabled = false
 local jumpEnabled = false
+
+local normalSpeed = 16
+local boostedSpeed = 120
 
 -------------------------------------------------
 -- BUTTON FACTORY
@@ -95,27 +95,30 @@ local function makeButton(text, y, color)
 	return b
 end
 
-local flyBtn = makeButton("FLY OFF", 0.1, Color3.fromRGB(0,255,120))
-local espBtn = makeButton("ESP OFF", 0.22, Color3.fromRGB(0,170,255))
-local auraBtn = makeButton("AURA OFF", 0.34, Color3.fromRGB(255,80,80))
-local speedBtn = makeButton("SPEED OFF", 0.46, Color3.fromRGB(255,170,0))
-local jumpBtn = makeButton("JUMP OFF", 0.58, Color3.fromRGB(120,120,255))
-local tpBtn = makeButton("TP LOW HP", 0.70, Color3.fromRGB(200,200,200))
+local espBtn = makeButton("ESP OFF", 0.12, Color3.fromRGB(0,170,255))
+local auraBtn = makeButton("AURA OFF", 0.28, Color3.fromRGB(255,80,80))
+local speedBtn = makeButton("SPEED OFF", 0.44, Color3.fromRGB(255,170,0))
+local jumpBtn = makeButton("JUMP OFF", 0.60, Color3.fromRGB(120,120,255))
+local tpBtn = makeButton("TP LOW HP", 0.76, Color3.fromRGB(200,200,200))
 
 -------------------------------------------------
--- SPEED
+-- SPEED FIXADO
 -------------------------------------------------
 speedBtn.MouseButton1Click:Connect(function()
-	speed = speed == 50 and 120 or 50
-	speedBtn.Text = speed == 50 and "SPEED OFF" or "SPEED ON"
-end)
+	speedEnabled = not speedEnabled
+	speedBtn.Text = speedEnabled and "SPEED ON" or "SPEED OFF"
 
-RunService.RenderStepped:Connect(function()
 	local char = player.Character
 	local hum = char and char:FindFirstChild("Humanoid")
+
 	if hum then
-		hum.WalkSpeed = speed
+		hum.WalkSpeed = speedEnabled and boostedSpeed or normalSpeed
 	end
+end)
+
+player.CharacterAdded:Connect(function(char)
+	local hum = char:WaitForChild("Humanoid")
+	hum.WalkSpeed = normalSpeed
 end)
 
 -------------------------------------------------
@@ -160,41 +163,11 @@ tpBtn.MouseButton1Click:Connect(function()
 	if t and t.Character and player.Character then
 		local r = player.Character:FindFirstChild("HumanoidRootPart")
 		local tr = t.Character:FindFirstChild("HumanoidRootPart")
+
 		if r and tr then
 			r.CFrame = tr.CFrame + Vector3.new(0,3,0)
 		end
 	end
-end)
-
--------------------------------------------------
--- AURA
--------------------------------------------------
-RunService.RenderStepped:Connect(function()
-	if not aura then return end
-
-	local char = player.Character
-	if not char then return end
-
-	local root = char:FindFirstChild("HumanoidRootPart")
-	if not root then return end
-
-	for _,p in pairs(Players:GetPlayers()) do
-		if p ~= player and p.Character then
-			local hrp = p.Character:FindFirstChild("HumanoidRootPart")
-			local hum = p.Character:FindFirstChild("Humanoid")
-
-			if hrp and hum and hum.Health > 0 then
-				if (root.Position - hrp.Position).Magnitude <= 10 then
-					hum:TakeDamage(5)
-				end
-			end
-		end
-	end
-end)
-
-auraBtn.MouseButton1Click:Connect(function()
-	aura = not aura
-	auraBtn.Text = aura and "AURA ON" or "AURA OFF"
 end)
 
 -------------------------------------------------
@@ -243,46 +216,32 @@ espBtn.MouseButton1Click:Connect(function()
 end)
 
 -------------------------------------------------
--- FLY
+-- AURA
 -------------------------------------------------
-local flying = false
-local bv, bg
-
-flyBtn.MouseButton1Click:Connect(function()
-	flying = not flying
-	flyBtn.Text = flying and "FLY ON" or "FLY OFF"
+RunService.RenderStepped:Connect(function()
+	if not aura then return end
 
 	local char = player.Character
-	local hrp = char and char:FindFirstChild("HumanoidRootPart")
-	local hum = char and char:FindFirstChild("Humanoid")
+	if not char then return end
 
-	if flying then
-		if hum then hum.PlatformStand = true end
+	local root = char:FindFirstChild("HumanoidRootPart")
+	if not root then return end
 
-		bg = Instance.new("BodyGyro")
-		bg.MaxTorque = Vector3.new(9e9,9e9,9e9)
-		bg.Parent = hrp
+	for _,p in pairs(Players:GetPlayers()) do
+		if p ~= player and p.Character then
+			local hrp = p.Character:FindFirstChild("HumanoidRootPart")
+			local hum = p.Character:FindFirstChild("Humanoid")
 
-		bv = Instance.new("BodyVelocity")
-		bv.MaxForce = Vector3.new(9e9,9e9,9e9)
-		bv.Parent = hrp
-
-		RunService.RenderStepped:Connect(function()
-			if flying and hrp then
-				bg.CFrame = camera.CFrame
-
-				local move = Vector3.zero
-				if UIS:IsKeyDown(Enum.KeyCode.W) then move += camera.CFrame.LookVector end
-				if UIS:IsKeyDown(Enum.KeyCode.S) then move -= camera.CFrame.LookVector end
-				if UIS:IsKeyDown(Enum.KeyCode.A) then move -= camera.CFrame.RightVector end
-				if UIS:IsKeyDown(Enum.KeyCode.D) then move += camera.CFrame.RightVector end
-
-				bv.Velocity = move * 60
+			if hrp and hum and hum.Health > 0 then
+				if (root.Position - hrp.Position).Magnitude <= 10 then
+					hum:TakeDamage(5)
+				end
 			end
-		end)
-	else
-		if hum then hum.PlatformStand = false end
-		if bv then bv:Destroy() end
-		if bg then bg:Destroy() end
+		end
 	end
+end)
+
+auraBtn.MouseButton1Click:Connect(function()
+	aura = not aura
+	auraBtn.Text = aura and "AURA ON" or "AURA OFF"
 end)
