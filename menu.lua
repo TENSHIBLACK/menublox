@@ -1,15 +1,23 @@
---// MOBILE HUB FULL HD+ (1600x720)
+--// MOBILE HUB V3 FIXED - ROBLOX LUAU
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 
 local player = Players.LocalPlayer
+
+-- REMOVE MENUS DUPLICADOS
+if player.PlayerGui:FindFirstChild("MobileHub") then
+	player.PlayerGui.MobileHub:Destroy()
+end
+
+-- CHARACTER
 local character = player.Character or player.CharacterAdded:Wait()
 local humanoid = character:WaitForChild("Humanoid")
 local hrp = character:WaitForChild("HumanoidRootPart")
 
 player.CharacterAdded:Connect(function(char)
+
 	character = char
 	humanoid = char:WaitForChild("Humanoid")
 	hrp = char:WaitForChild("HumanoidRootPart")
@@ -19,25 +27,27 @@ end)
 local gui = Instance.new("ScreenGui")
 gui.Name = "MobileHub"
 gui.ResetOnSpawn = false
+gui.IgnoreGuiInset = true
 gui.Parent = player.PlayerGui
 
--- MAIN
+-- MAIN FRAME
 local frame = Instance.new("Frame")
 frame.Size = UDim2.new(0,170,0,280)
 frame.Position = UDim2.new(0,10,0.5,-140)
 frame.BackgroundColor3 = Color3.fromRGB(20,20,20)
-frame.BackgroundTransparency = 0.15
+frame.BackgroundTransparency = 0.1
 frame.Active = true
 frame.Draggable = true
 frame.Parent = gui
 
 Instance.new("UICorner", frame).CornerRadius = UDim.new(0,12)
 
--- RGB BORDER
+-- RGB STROKE
 local stroke = Instance.new("UIStroke")
 stroke.Thickness = 2
 stroke.Parent = frame
 
+-- RGB LOOP
 local rgb = 0
 
 RunService.RenderStepped:Connect(function()
@@ -53,9 +63,9 @@ title.Size = UDim2.new(1,-40,0,28)
 title.Position = UDim2.new(0,8,0,5)
 title.BackgroundTransparency = 1
 title.Text = "MOBILE HUB"
+title.TextColor3 = Color3.new(1,1,1)
 title.Font = Enum.Font.GothamBold
 title.TextScaled = true
-title.TextColor3 = Color3.new(1,1,1)
 title.Parent = frame
 
 -- MINIMIZE
@@ -65,9 +75,9 @@ local minimize = Instance.new("TextButton")
 minimize.Size = UDim2.new(0,26,0,26)
 minimize.Position = UDim2.new(1,-30,0,6)
 minimize.Text = "-"
-minimize.Font = Enum.Font.GothamBold
 minimize.TextScaled = true
-minimize.BackgroundColor3 = Color3.fromRGB(40,40,40)
+minimize.Font = Enum.Font.GothamBold
+minimize.BackgroundColor3 = Color3.fromRGB(35,35,35)
 minimize.TextColor3 = Color3.new(1,1,1)
 minimize.Parent = frame
 
@@ -114,8 +124,8 @@ local pTitle = Instance.new("TextLabel")
 pTitle.Size = UDim2.new(1,0,0,25)
 pTitle.BackgroundTransparency = 1
 pTitle.Text = "PLAYERS"
-pTitle.Font = Enum.Font.GothamBold
 pTitle.TextScaled = true
+pTitle.Font = Enum.Font.GothamBold
 pTitle.TextColor3 = Color3.new(1,1,1)
 pTitle.Parent = scroll
 
@@ -133,7 +143,7 @@ local playerLayout = Instance.new("UIListLayout")
 playerLayout.Padding = UDim.new(0,4)
 playerLayout.Parent = playerList
 
--- FLY
+-- FLY FIXED
 local flying = false
 local flyConnection
 
@@ -145,18 +155,26 @@ flyButton.MouseButton1Click:Connect(function()
 
 		flyButton.Text = "FLY ON"
 
+		humanoid.PlatformStand = false
+
 		flyConnection = RunService.RenderStepped:Connect(function()
 
-			local cam = workspace.CurrentCamera
+			if not flying then
+				return
+			end
+
 			local moveDir = humanoid.MoveDirection
 
-			local move =
-				(cam.CFrame.RightVector * moveDir.X) +
-				(cam.CFrame.LookVector * moveDir.Z)
+			-- JOYSTICK FIX
+			local velocity =
+				Vector3.new(
+					moveDir.X * 60,
+					0,
+					moveDir.Z * 60
+				)
 
-			hrp.Velocity =
-				Vector3.new(move.X,0,move.Z) * 60
-				+ Vector3.new(0,2,0)
+			hrp.AssemblyLinearVelocity =
+				velocity + Vector3.new(0,1.5,0)
 		end)
 
 	else
@@ -168,7 +186,7 @@ flyButton.MouseButton1Click:Connect(function()
 			flyConnection = nil
 		end
 
-		hrp.Velocity = Vector3.zero
+		hrp.AssemblyLinearVelocity = Vector3.zero
 	end
 end)
 
@@ -185,7 +203,7 @@ end)
 
 RunService.Stepped:Connect(function()
 
-	if noclip then
+	if noclip and character then
 
 		for _, v in pairs(character:GetDescendants()) do
 
@@ -203,6 +221,7 @@ local espTable = {}
 local function removeESP()
 
 	for _, v in pairs(espTable) do
+
 		if v then
 			v:Destroy()
 		end
@@ -279,17 +298,17 @@ local function stick(plr)
 		alignPos = Instance.new("AlignPosition")
 		alignPos.Attachment0 = att0
 		alignPos.Attachment1 = att1
-		alignPos.RigidityEnabled = true
-		alignPos.Responsiveness = 200
 		alignPos.MaxForce = 999999
+		alignPos.Responsiveness = 200
+		alignPos.RigidityEnabled = true
 		alignPos.Parent = hrp
 
 		alignOri = Instance.new("AlignOrientation")
 		alignOri.Attachment0 = att0
 		alignOri.Attachment1 = att1
-		alignOri.RigidityEnabled = true
-		alignOri.Responsiveness = 200
 		alignOri.MaxTorque = 999999
+		alignOri.Responsiveness = 200
+		alignOri.RigidityEnabled = true
 		alignOri.Parent = hrp
 	end
 end
