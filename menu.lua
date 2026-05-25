@@ -1,4 +1,4 @@
---// MOBILE HUB V3 FIXED - ROBLOX LUAU
+--// MOBILE HUB V4 FINAL - ROBLOX LUAU
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -6,7 +6,7 @@ local TweenService = game:GetService("TweenService")
 
 local player = Players.LocalPlayer
 
--- REMOVE MENUS DUPLICADOS
+-- REMOVE MENU DUPLICADO
 if player.PlayerGui:FindFirstChild("MobileHub") then
 	player.PlayerGui.MobileHub:Destroy()
 end
@@ -42,12 +42,11 @@ frame.Parent = gui
 
 Instance.new("UICorner", frame).CornerRadius = UDim.new(0,12)
 
--- RGB STROKE
+-- RGB BORDER
 local stroke = Instance.new("UIStroke")
 stroke.Thickness = 2
 stroke.Parent = frame
 
--- RGB LOOP
 local rgb = 0
 
 RunService.RenderStepped:Connect(function()
@@ -119,7 +118,7 @@ local noclipButton = createButton("NOCLIP OFF")
 local espButton = createButton("ESP OFF")
 local unstickButton = createButton("DESGRUDAR")
 
--- PLAYERS TITLE
+-- PLAYER TITLE
 local pTitle = Instance.new("TextLabel")
 pTitle.Size = UDim2.new(1,0,0,25)
 pTitle.BackgroundTransparency = 1
@@ -143,8 +142,10 @@ local playerLayout = Instance.new("UIListLayout")
 playerLayout.Padding = UDim.new(0,4)
 playerLayout.Parent = playerList
 
--- FLY FIXED
+-- FLY FIX MOBILE
 local flying = false
+local flyBV
+local flyGyro
 local flyConnection
 
 flyButton.MouseButton1Click:Connect(function()
@@ -155,7 +156,16 @@ flyButton.MouseButton1Click:Connect(function()
 
 		flyButton.Text = "FLY ON"
 
-		humanoid.PlatformStand = false
+		flyBV = Instance.new("BodyVelocity")
+		flyBV.MaxForce = Vector3.new(999999,999999,999999)
+		flyBV.Velocity = Vector3.zero
+		flyBV.Parent = hrp
+
+		flyGyro = Instance.new("BodyGyro")
+		flyGyro.MaxTorque = Vector3.new(999999,999999,999999)
+		flyGyro.P = 10000
+		flyGyro.CFrame = workspace.CurrentCamera.CFrame
+		flyGyro.Parent = hrp
 
 		flyConnection = RunService.RenderStepped:Connect(function()
 
@@ -163,18 +173,21 @@ flyButton.MouseButton1Click:Connect(function()
 				return
 			end
 
+			local cam = workspace.CurrentCamera
 			local moveDir = humanoid.MoveDirection
 
-			-- JOYSTICK FIX
-			local velocity =
+			local moveVector =
+				(cam.CFrame.LookVector * moveDir.Z) +
+				(cam.CFrame.RightVector * moveDir.X)
+
+			flyBV.Velocity =
 				Vector3.new(
-					moveDir.X * 60,
+					moveVector.X * 60,
 					0,
-					moveDir.Z * 60
+					moveVector.Z * 60
 				)
 
-			hrp.AssemblyLinearVelocity =
-				velocity + Vector3.new(0,1.5,0)
+			flyGyro.CFrame = cam.CFrame
 		end)
 
 	else
@@ -186,7 +199,17 @@ flyButton.MouseButton1Click:Connect(function()
 			flyConnection = nil
 		end
 
-		hrp.AssemblyLinearVelocity = Vector3.zero
+		if flyBV then
+			flyBV:Destroy()
+			flyBV = nil
+		end
+
+		if flyGyro then
+			flyGyro:Destroy()
+			flyGyro = nil
+		end
+
+		hrp.Velocity = Vector3.zero
 	end
 end)
 
@@ -266,7 +289,7 @@ espButton.MouseButton1Click:Connect(function()
 	end
 end)
 
--- STICK
+-- STICK PLAYER
 local alignPos
 local alignOri
 local att0
