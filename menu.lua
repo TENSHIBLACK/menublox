@@ -1,156 +1,239 @@
+--// MOBILE PANEL COMPLETO - ROBLOX LUAU
+
 local Players = game:GetService("Players")
-local UIS = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 
 local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
 
--------------------------------------------------
--- CONFIG
--------------------------------------------------
-local jumpOn = false
-local espOn = false
-
--------------------------------------------------
--- GUI (simples)
--------------------------------------------------
-local gui = Instance.new("ScreenGui")
-gui.Name = "MiniHub"
-gui.ResetOnSpawn = false
-gui.Parent = player:WaitForChild("PlayerGui")
+-- GUI
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "MobileMenu"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = player:WaitForChild("PlayerGui")
 
 local frame = Instance.new("Frame")
-frame.Parent = gui
-frame.Size = UDim2.new(0, 220, 0, 180)
-frame.Position = UDim2.new(0.5, -110, 0.5, -90)
-frame.BackgroundColor3 = Color3.fromRGB(25,25,25)
+frame.Size = UDim2.new(0, 240, 0, 380)
+frame.Position = UDim2.new(0, 20, 0.5, -190)
+frame.BackgroundColor3 = Color3.fromRGB(35,35,35)
 frame.Active = true
 frame.Draggable = true
+frame.Parent = screenGui
 
-Instance.new("UICorner", frame).CornerRadius = UDim.new(0,10)
+Instance.new("UICorner", frame)
 
--------------------------------------------------
--- BOTÕES
--------------------------------------------------
-local function btn(text, y, color)
-	local b = Instance.new("TextButton")
-	b.Parent = frame
-	b.Size = UDim2.new(0.9,0,0,40)
-	b.Position = UDim2.new(0.05,0,y,0)
-	b.Text = text
-	b.BackgroundColor3 = color
-	b.TextColor3 = Color3.new(1,1,1)
-	b.Font = Enum.Font.GothamBold
-	b.TextSize = 14
-	return b
-end
+-- TÍTULO
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, -50, 0, 40)
+title.Position = UDim2.new(0, 10, 0, 5)
+title.BackgroundTransparency = 1
+title.Text = "MENU MOBILE"
+title.TextScaled = true
+title.TextColor3 = Color3.new(1,1,1)
+title.Parent = frame
 
-local jumpBtn = btn("JUMP OFF", 0.05, Color3.fromRGB(120,120,255))
-local espBtn = btn("ESP LINE OFF", 0.38, Color3.fromRGB(0,170,255))
-local tpBtn = btn("TP LOW HP", 0.71, Color3.fromRGB(200,200,200))
+-- BOTÃO MINIMIZAR
+local minimized = false
 
--------------------------------------------------
--- PULO INFINITO
--------------------------------------------------
-jumpBtn.MouseButton1Click:Connect(function()
-	jumpOn = not jumpOn
-	jumpBtn.Text = jumpOn and "JUMP ON" or "JUMP OFF"
+local minimizeButton = Instance.new("TextButton")
+minimizeButton.Size = UDim2.new(0,40,0,40)
+minimizeButton.Position = UDim2.new(1,-45,0,5)
+minimizeButton.Text = "-"
+minimizeButton.TextScaled = true
+minimizeButton.BackgroundColor3 = Color3.fromRGB(255,170,0)
+minimizeButton.Parent = frame
+
+Instance.new("UICorner", minimizeButton)
+
+-- BOTÃO FLY
+local flyButton = Instance.new("TextButton")
+flyButton.Size = UDim2.new(0,200,0,50)
+flyButton.Position = UDim2.new(0,20,0,55)
+flyButton.Text = "FLY OFF"
+flyButton.TextScaled = true
+flyButton.BackgroundColor3 = Color3.fromRGB(0,170,255)
+flyButton.Parent = frame
+
+Instance.new("UICorner", flyButton)
+
+-- BOTÃO DESGRUDAR
+local unstickButton = Instance.new("TextButton")
+unstickButton.Size = UDim2.new(0,200,0,50)
+unstickButton.Position = UDim2.new(0,20,0,115)
+unstickButton.Text = "DESGRUDAR"
+unstickButton.TextScaled = true
+unstickButton.BackgroundColor3 = Color3.fromRGB(255,80,80)
+unstickButton.Parent = frame
+
+Instance.new("UICorner", unstickButton)
+
+-- TEXTO LISTA
+local playersLabel = Instance.new("TextLabel")
+playersLabel.Size = UDim2.new(1,0,0,30)
+playersLabel.Position = UDim2.new(0,0,0,175)
+playersLabel.BackgroundTransparency = 1
+playersLabel.Text = "JOGADORES"
+playersLabel.TextScaled = true
+playersLabel.TextColor3 = Color3.new(1,1,1)
+playersLabel.Parent = frame
+
+-- LISTA DE JOGADORES
+local scrollingFrame = Instance.new("ScrollingFrame")
+scrollingFrame.Size = UDim2.new(0,200,0,150)
+scrollingFrame.Position = UDim2.new(0,20,0,210)
+scrollingFrame.CanvasSize = UDim2.new(0,0,0,0)
+scrollingFrame.BackgroundColor3 = Color3.fromRGB(50,50,50)
+scrollingFrame.Parent = frame
+
+Instance.new("UICorner", scrollingFrame)
+
+local layout = Instance.new("UIListLayout")
+layout.Padding = UDim.new(0,5)
+layout.Parent = scrollingFrame
+
+-- FLY
+local flying = false
+local bodyVelocity
+
+flyButton.MouseButton1Click:Connect(function()
+
+	flying = not flying
+
+	if flying then
+
+		flyButton.Text = "FLY ON"
+
+		bodyVelocity = Instance.new("BodyVelocity")
+		bodyVelocity.MaxForce = Vector3.new(999999,999999,999999)
+		bodyVelocity.Velocity = Vector3.zero
+		bodyVelocity.Parent = humanoidRootPart
+
+	else
+
+		flyButton.Text = "FLY OFF"
+
+		if bodyVelocity then
+			bodyVelocity:Destroy()
+			bodyVelocity = nil
+		end
+	end
 end)
 
-UIS.JumpRequest:Connect(function()
-	if not jumpOn then return end
+RunService.RenderStepped:Connect(function()
 
-	local hum = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
-	if hum then
-		hum:ChangeState(Enum.HumanoidStateType.Jumping)
+	if flying and bodyVelocity then
+
+		local moveDirection = humanoid.MoveDirection
+
+		bodyVelocity.Velocity = moveDirection * 70
 	end
 end)
 
--------------------------------------------------
--- TP LOW HP
--------------------------------------------------
-local function getLowHP()
-	local target = nil
-	local lowest = math.huge
+-- SISTEMA GRUDAR
+local currentWeld = nil
 
-	for _,p in pairs(Players:GetPlayers()) do
-		if p ~= player and p.Character then
-			local hum = p.Character:FindFirstChildOfClass("Humanoid")
+local function stickToPlayer(targetPlayer)
 
-			if hum and hum.Health > 0 and hum.Health < lowest then
-				lowest = hum.Health
-				target = p
-			end
+	if targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+
+		local targetHRP = targetPlayer.Character.HumanoidRootPart
+
+		if currentWeld then
+			currentWeld:Destroy()
 		end
-	end
 
-	return target
+		local weld = Instance.new("WeldConstraint")
+		weld.Part0 = humanoidRootPart
+		weld.Part1 = targetHRP
+		weld.Parent = humanoidRootPart
+
+		currentWeld = weld
+
+		humanoidRootPart.CFrame = targetHRP.CFrame * CFrame.new(0,0,2)
+	end
 end
 
-tpBtn.MouseButton1Click:Connect(function()
-	local t = getLowHP()
+-- DESGRUDAR
+unstickButton.MouseButton1Click:Connect(function()
 
-	if t and t.Character and player.Character then
-		local myRoot = player.Character:FindFirstChild("HumanoidRootPart")
-		local tRoot = t.Character:FindFirstChild("HumanoidRootPart")
-
-		if myRoot and tRoot then
-			myRoot.CFrame = tRoot.CFrame + Vector3.new(0,3,0)
-		end
+	if currentWeld then
+		currentWeld:Destroy()
+		currentWeld = nil
 	end
 end)
 
--------------------------------------------------
--- ESP LINE (BEAM)
--------------------------------------------------
-local function createESP(plr)
-	local beam = Instance.new("Beam")
+-- ATUALIZAR LISTA
+local function refreshPlayerList()
 
-	local a0 = Instance.new("Attachment")
-	local a1 = Instance.new("Attachment")
-
-	RunService.RenderStepped:Connect(function()
-		if not espOn then
-			beam.Enabled = false
-			return
+	for _, child in pairs(scrollingFrame:GetChildren()) do
+		if child:IsA("TextButton") then
+			child:Destroy()
 		end
-
-		local char = plr.Character
-		local myChar = player.Character
-
-		if not char or not myChar then return end
-
-		local head = char:FindFirstChild("Head")
-		local myHead = myChar:FindFirstChild("Head")
-
-		local hum = char:FindFirstChildOfClass("Humanoid")
-
-		if head and myHead and hum then
-			a0.Parent = myHead
-			a1.Parent = head
-
-			beam.Attachment0 = a0
-			beam.Attachment1 = a1
-			beam.Color = ColorSequence.new(Color3.fromRGB(0,255,180))
-			beam.Width0 = 0.1
-			beam.Width1 = 0.1
-			beam.Enabled = true
-			beam.Parent = workspace.Terrain
-		end
-	end)
-end
-
-for _,p in pairs(Players:GetPlayers()) do
-	if p ~= player then
-		createESP(p)
 	end
+
+	for _, plr in pairs(Players:GetPlayers()) do
+
+		if plr ~= player then
+
+			local button = Instance.new("TextButton")
+			button.Size = UDim2.new(1,-5,0,40)
+			button.Text = plr.Name
+			button.TextScaled = true
+			button.BackgroundColor3 = Color3.fromRGB(70,70,70)
+			button.Parent = scrollingFrame
+
+			Instance.new("UICorner", button)
+
+			button.MouseButton1Click:Connect(function()
+				stickToPlayer(plr)
+			end)
+		end
+	end
+
+	task.wait()
+
+	scrollingFrame.CanvasSize = UDim2.new(
+		0,
+		0,
+		0,
+		layout.AbsoluteContentSize.Y + 10
+	)
 end
 
-Players.PlayerAdded:Connect(function(p)
-	task.wait(1)
-	createESP(p)
-end)
+refreshPlayerList()
 
-espBtn.MouseButton1Click:Connect(function()
-	espOn = not espOn
-	espBtn.Text = espOn and "ESP LINE ON" or "ESP LINE OFF"
+Players.PlayerAdded:Connect(refreshPlayerList)
+Players.PlayerRemoving:Connect(refreshPlayerList)
+
+-- MINIMIZAR MENU
+local originalSize = frame.Size
+
+minimizeButton.MouseButton1Click:Connect(function()
+
+	minimized = not minimized
+
+	if minimized then
+
+		frame.Size = UDim2.new(0,240,0,50)
+
+		flyButton.Visible = false
+		unstickButton.Visible = false
+		scrollingFrame.Visible = false
+		playersLabel.Visible = false
+
+		minimizeButton.Text = "+"
+
+	else
+
+		frame.Size = originalSize
+
+		flyButton.Visible = true
+		unstickButton.Visible = true
+		scrollingFrame.Visible = true
+		playersLabel.Visible = true
+
+		minimizeButton.Text = "-"
+	end
 end)
