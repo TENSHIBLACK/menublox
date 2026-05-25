@@ -1,4 +1,4 @@
---// MOBILE PANEL COMPLETO - ROBLOX LUAU
+--// MENU MOBILE COMPLETO - ROBLOX LUAU
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -6,28 +6,28 @@ local RunService = game:GetService("RunService")
 local player = Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local humanoid = character:WaitForChild("Humanoid")
-local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+local hrp = character:WaitForChild("HumanoidRootPart")
 
 -- GUI
-local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "MobileMenu"
-screenGui.ResetOnSpawn = false
-screenGui.Parent = player:WaitForChild("PlayerGui")
+local gui = Instance.new("ScreenGui")
+gui.Name = "MobileMenu"
+gui.ResetOnSpawn = false
+gui.Parent = player.PlayerGui
 
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 240, 0, 380)
-frame.Position = UDim2.new(0, 20, 0.5, -190)
+frame.Size = UDim2.new(0,240,0,380)
+frame.Position = UDim2.new(0,20,0.5,-190)
 frame.BackgroundColor3 = Color3.fromRGB(35,35,35)
 frame.Active = true
 frame.Draggable = true
-frame.Parent = screenGui
+frame.Parent = gui
 
 Instance.new("UICorner", frame)
 
--- TÍTULO
+-- TITULO
 local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1, -50, 0, 40)
-title.Position = UDim2.new(0, 10, 0, 5)
+title.Size = UDim2.new(1,-50,0,40)
+title.Position = UDim2.new(0,10,0,5)
 title.BackgroundTransparency = 1
 title.Text = "MENU MOBILE"
 title.TextScaled = true
@@ -37,15 +37,15 @@ title.Parent = frame
 -- BOTÃO MINIMIZAR
 local minimized = false
 
-local minimizeButton = Instance.new("TextButton")
-minimizeButton.Size = UDim2.new(0,40,0,40)
-minimizeButton.Position = UDim2.new(1,-45,0,5)
-minimizeButton.Text = "-"
-minimizeButton.TextScaled = true
-minimizeButton.BackgroundColor3 = Color3.fromRGB(255,170,0)
-minimizeButton.Parent = frame
+local minimize = Instance.new("TextButton")
+minimize.Size = UDim2.new(0,40,0,40)
+minimize.Position = UDim2.new(1,-45,0,5)
+minimize.Text = "-"
+minimize.TextScaled = true
+minimize.BackgroundColor3 = Color3.fromRGB(255,170,0)
+minimize.Parent = frame
 
-Instance.new("UICorner", minimizeButton)
+Instance.new("UICorner", minimize)
 
 -- BOTÃO FLY
 local flyButton = Instance.new("TextButton")
@@ -59,43 +59,43 @@ flyButton.Parent = frame
 Instance.new("UICorner", flyButton)
 
 -- BOTÃO DESGRUDAR
-local unstickButton = Instance.new("TextButton")
-unstickButton.Size = UDim2.new(0,200,0,50)
-unstickButton.Position = UDim2.new(0,20,0,115)
-unstickButton.Text = "DESGRUDAR"
-unstickButton.TextScaled = true
-unstickButton.BackgroundColor3 = Color3.fromRGB(255,80,80)
-unstickButton.Parent = frame
+local unstick = Instance.new("TextButton")
+unstick.Size = UDim2.new(0,200,0,50)
+unstick.Position = UDim2.new(0,20,0,115)
+unstick.Text = "DESGRUDAR"
+unstick.TextScaled = true
+unstick.BackgroundColor3 = Color3.fromRGB(255,80,80)
+unstick.Parent = frame
 
-Instance.new("UICorner", unstickButton)
+Instance.new("UICorner", unstick)
 
--- TEXTO LISTA
-local playersLabel = Instance.new("TextLabel")
-playersLabel.Size = UDim2.new(1,0,0,30)
-playersLabel.Position = UDim2.new(0,0,0,175)
-playersLabel.BackgroundTransparency = 1
-playersLabel.Text = "JOGADORES"
-playersLabel.TextScaled = true
-playersLabel.TextColor3 = Color3.new(1,1,1)
-playersLabel.Parent = frame
+-- TEXTO
+local label = Instance.new("TextLabel")
+label.Size = UDim2.new(1,0,0,30)
+label.Position = UDim2.new(0,0,0,175)
+label.BackgroundTransparency = 1
+label.Text = "JOGADORES"
+label.TextScaled = true
+label.TextColor3 = Color3.new(1,1,1)
+label.Parent = frame
 
--- LISTA DE JOGADORES
-local scrollingFrame = Instance.new("ScrollingFrame")
-scrollingFrame.Size = UDim2.new(0,200,0,150)
-scrollingFrame.Position = UDim2.new(0,20,0,210)
-scrollingFrame.CanvasSize = UDim2.new(0,0,0,0)
-scrollingFrame.BackgroundColor3 = Color3.fromRGB(50,50,50)
-scrollingFrame.Parent = frame
+-- LISTA
+local scrolling = Instance.new("ScrollingFrame")
+scrolling.Size = UDim2.new(0,200,0,150)
+scrolling.Position = UDim2.new(0,20,0,210)
+scrolling.BackgroundColor3 = Color3.fromRGB(50,50,50)
+scrolling.CanvasSize = UDim2.new(0,0,0,0)
+scrolling.Parent = frame
 
-Instance.new("UICorner", scrollingFrame)
+Instance.new("UICorner", scrolling)
 
 local layout = Instance.new("UIListLayout")
 layout.Padding = UDim.new(0,5)
-layout.Parent = scrollingFrame
+layout.Parent = scrolling
 
 -- FLY
 local flying = false
-local bodyVelocity
+local flyConnection
 
 flyButton.MouseButton1Click:Connect(function()
 
@@ -105,71 +105,101 @@ flyButton.MouseButton1Click:Connect(function()
 
 		flyButton.Text = "FLY ON"
 
-		bodyVelocity = Instance.new("BodyVelocity")
-		bodyVelocity.MaxForce = Vector3.new(999999,999999,999999)
-		bodyVelocity.Velocity = Vector3.zero
-		bodyVelocity.Parent = humanoidRootPart
+		flyConnection = RunService.RenderStepped:Connect(function()
+
+			if humanoid and hrp then
+
+				hrp.Velocity = humanoid.MoveDirection * 80 + Vector3.new(0,2,0)
+
+			end
+		end)
 
 	else
 
 		flyButton.Text = "FLY OFF"
 
-		if bodyVelocity then
-			bodyVelocity:Destroy()
-			bodyVelocity = nil
+		if flyConnection then
+			flyConnection:Disconnect()
+			flyConnection = nil
 		end
+
+		hrp.Velocity = Vector3.zero
 	end
 end)
 
-RunService.RenderStepped:Connect(function()
+-- GRUDAR
+local alignPosition
+local alignOrientation
+local attachment0
+local attachment1
 
-	if flying and bodyVelocity then
+local function unstickPlayer()
 
-		local moveDirection = humanoid.MoveDirection
-
-		bodyVelocity.Velocity = moveDirection * 70
+	if alignPosition then
+		alignPosition:Destroy()
+		alignPosition = nil
 	end
-end)
 
--- SISTEMA GRUDAR
-local currentWeld = nil
+	if alignOrientation then
+		alignOrientation:Destroy()
+		alignOrientation = nil
+	end
 
-local function stickToPlayer(targetPlayer)
+	if attachment0 then
+		attachment0:Destroy()
+		attachment0 = nil
+	end
 
-	if targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
-
-		local targetHRP = targetPlayer.Character.HumanoidRootPart
-
-		if currentWeld then
-			currentWeld:Destroy()
-		end
-
-		local weld = Instance.new("WeldConstraint")
-		weld.Part0 = humanoidRootPart
-		weld.Part1 = targetHRP
-		weld.Parent = humanoidRootPart
-
-		currentWeld = weld
-
-		humanoidRootPart.CFrame = targetHRP.CFrame * CFrame.new(0,0,2)
+	if attachment1 then
+		attachment1:Destroy()
+		attachment1 = nil
 	end
 end
 
--- DESGRUDAR
-unstickButton.MouseButton1Click:Connect(function()
+local function stickPlayer(target)
 
-	if currentWeld then
-		currentWeld:Destroy()
-		currentWeld = nil
+	unstickPlayer()
+
+	if target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
+
+		local targetHRP = target.Character.HumanoidRootPart
+
+		attachment0 = Instance.new("Attachment")
+		attachment0.Parent = hrp
+
+		attachment1 = Instance.new("Attachment")
+		attachment1.Parent = targetHRP
+
+		alignPosition = Instance.new("AlignPosition")
+		alignPosition.Attachment0 = attachment0
+		alignPosition.Attachment1 = attachment1
+		alignPosition.RigidityEnabled = true
+		alignPosition.MaxForce = 999999
+		alignPosition.Responsiveness = 200
+		alignPosition.Parent = hrp
+
+		alignOrientation = Instance.new("AlignOrientation")
+		alignOrientation.Attachment0 = attachment0
+		alignOrientation.Attachment1 = attachment1
+		alignOrientation.RigidityEnabled = true
+		alignOrientation.MaxTorque = 999999
+		alignOrientation.Responsiveness = 200
+		alignOrientation.Parent = hrp
+
+		hrp.CFrame = targetHRP.CFrame * CFrame.new(0,0,2)
 	end
+end
+
+unstick.MouseButton1Click:Connect(function()
+	unstickPlayer()
 end)
 
--- ATUALIZAR LISTA
-local function refreshPlayerList()
+-- ATUALIZAR JOGADORES
+local function refreshPlayers()
 
-	for _, child in pairs(scrollingFrame:GetChildren()) do
-		if child:IsA("TextButton") then
-			child:Destroy()
+	for _, v in pairs(scrolling:GetChildren()) do
+		if v:IsA("TextButton") then
+			v:Destroy()
 		end
 	end
 
@@ -177,24 +207,24 @@ local function refreshPlayerList()
 
 		if plr ~= player then
 
-			local button = Instance.new("TextButton")
-			button.Size = UDim2.new(1,-5,0,40)
-			button.Text = plr.Name
-			button.TextScaled = true
-			button.BackgroundColor3 = Color3.fromRGB(70,70,70)
-			button.Parent = scrollingFrame
+			local btn = Instance.new("TextButton")
+			btn.Size = UDim2.new(1,-5,0,40)
+			btn.Text = plr.Name
+			btn.TextScaled = true
+			btn.BackgroundColor3 = Color3.fromRGB(70,70,70)
+			btn.Parent = scrolling
 
-			Instance.new("UICorner", button)
+			Instance.new("UICorner", btn)
 
-			button.MouseButton1Click:Connect(function()
-				stickToPlayer(plr)
+			btn.MouseButton1Click:Connect(function()
+				stickPlayer(plr)
 			end)
 		end
 	end
 
 	task.wait()
 
-	scrollingFrame.CanvasSize = UDim2.new(
+	scrolling.CanvasSize = UDim2.new(
 		0,
 		0,
 		0,
@@ -202,15 +232,15 @@ local function refreshPlayerList()
 	)
 end
 
-refreshPlayerList()
+refreshPlayers()
 
-Players.PlayerAdded:Connect(refreshPlayerList)
-Players.PlayerRemoving:Connect(refreshPlayerList)
+Players.PlayerAdded:Connect(refreshPlayers)
+Players.PlayerRemoving:Connect(refreshPlayers)
 
--- MINIMIZAR MENU
-local originalSize = frame.Size
+-- MINIMIZAR
+local original = frame.Size
 
-minimizeButton.MouseButton1Click:Connect(function()
+minimize.MouseButton1Click:Connect(function()
 
 	minimized = not minimized
 
@@ -219,21 +249,21 @@ minimizeButton.MouseButton1Click:Connect(function()
 		frame.Size = UDim2.new(0,240,0,50)
 
 		flyButton.Visible = false
-		unstickButton.Visible = false
-		scrollingFrame.Visible = false
-		playersLabel.Visible = false
+		unstick.Visible = false
+		scrolling.Visible = false
+		label.Visible = false
 
-		minimizeButton.Text = "+"
+		minimize.Text = "+"
 
 	else
 
-		frame.Size = originalSize
+		frame.Size = original
 
 		flyButton.Visible = true
-		unstickButton.Visible = true
-		scrollingFrame.Visible = true
-		playersLabel.Visible = true
+		unstick.Visible = true
+		scrolling.Visible = true
+		label.Visible = true
 
-		minimizeButton.Text = "-"
+		minimize.Text = "-"
 	end
 end)
