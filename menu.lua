@@ -1,7 +1,9 @@
---// MENU MOBILE COMPLETO - ROBLOX LUAU
+--// MOBILE HUB COMPLETO - ROBLOX LUAU
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
 
 local player = Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
@@ -10,90 +12,129 @@ local hrp = character:WaitForChild("HumanoidRootPart")
 
 -- GUI
 local gui = Instance.new("ScreenGui")
-gui.Name = "MobileMenu"
+gui.Name = "MobileHub"
 gui.ResetOnSpawn = false
 gui.Parent = player.PlayerGui
 
+-- RGB EFFECT
+local rgb = 0
+
+-- MAIN FRAME
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0,240,0,380)
-frame.Position = UDim2.new(0,20,0.5,-190)
-frame.BackgroundColor3 = Color3.fromRGB(35,35,35)
+frame.Size = UDim2.new(0,260,0,500)
+frame.Position = UDim2.new(0,20,0.5,-250)
+frame.BackgroundColor3 = Color3.fromRGB(25,25,25)
 frame.Active = true
 frame.Draggable = true
 frame.Parent = gui
 
-Instance.new("UICorner", frame)
+Instance.new("UICorner", frame).CornerRadius = UDim.new(0,16)
 
--- TITULO
+-- STROKE RGB
+local stroke = Instance.new("UIStroke")
+stroke.Thickness = 3
+stroke.Parent = frame
+
+-- TITLE
 local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1,-50,0,40)
-title.Position = UDim2.new(0,10,0,5)
+title.Size = UDim2.new(1,-60,0,45)
+title.Position = UDim2.new(0,15,0,5)
 title.BackgroundTransparency = 1
-title.Text = "MENU MOBILE"
+title.Text = "MOBILE HUB"
+title.Font = Enum.Font.GothamBold
 title.TextScaled = true
 title.TextColor3 = Color3.new(1,1,1)
 title.Parent = frame
 
--- BOTÃO MINIMIZAR
+-- MINIMIZE
 local minimized = false
 
 local minimize = Instance.new("TextButton")
 minimize.Size = UDim2.new(0,40,0,40)
 minimize.Position = UDim2.new(1,-45,0,5)
 minimize.Text = "-"
+minimize.Font = Enum.Font.GothamBold
 minimize.TextScaled = true
-minimize.BackgroundColor3 = Color3.fromRGB(255,170,0)
+minimize.BackgroundColor3 = Color3.fromRGB(40,40,40)
+minimize.TextColor3 = Color3.new(1,1,1)
 minimize.Parent = frame
 
-Instance.new("UICorner", minimize)
+Instance.new("UICorner", minimize).CornerRadius = UDim.new(1,0)
 
--- BOTÃO FLY
-local flyButton = Instance.new("TextButton")
-flyButton.Size = UDim2.new(0,200,0,50)
-flyButton.Position = UDim2.new(0,20,0,55)
-flyButton.Text = "FLY OFF"
-flyButton.TextScaled = true
-flyButton.BackgroundColor3 = Color3.fromRGB(0,170,255)
-flyButton.Parent = frame
-
-Instance.new("UICorner", flyButton)
-
--- BOTÃO DESGRUDAR
-local unstick = Instance.new("TextButton")
-unstick.Size = UDim2.new(0,200,0,50)
-unstick.Position = UDim2.new(0,20,0,115)
-unstick.Text = "DESGRUDAR"
-unstick.TextScaled = true
-unstick.BackgroundColor3 = Color3.fromRGB(255,80,80)
-unstick.Parent = frame
-
-Instance.new("UICorner", unstick)
-
--- TEXTO
-local label = Instance.new("TextLabel")
-label.Size = UDim2.new(1,0,0,30)
-label.Position = UDim2.new(0,0,0,175)
-label.BackgroundTransparency = 1
-label.Text = "JOGADORES"
-label.TextScaled = true
-label.TextColor3 = Color3.new(1,1,1)
-label.Parent = frame
-
--- LISTA
-local scrolling = Instance.new("ScrollingFrame")
-scrolling.Size = UDim2.new(0,200,0,150)
-scrolling.Position = UDim2.new(0,20,0,210)
-scrolling.BackgroundColor3 = Color3.fromRGB(50,50,50)
-scrolling.CanvasSize = UDim2.new(0,0,0,0)
-scrolling.Parent = frame
-
-Instance.new("UICorner", scrolling)
+-- SCROLL
+local scroll = Instance.new("ScrollingFrame")
+scroll.Size = UDim2.new(1,-20,1,-70)
+scroll.Position = UDim2.new(0,10,0,60)
+scroll.CanvasSize = UDim2.new(0,0,0,700)
+scroll.ScrollBarThickness = 4
+scroll.BackgroundTransparency = 1
+scroll.Parent = frame
 
 local layout = Instance.new("UIListLayout")
-layout.Padding = UDim.new(0,5)
-layout.Parent = scrolling
+layout.Padding = UDim.new(0,8)
+layout.Parent = scroll
 
--- FLY
+-- BUTTON CREATOR
+local function createButton(text)
+
+	local button = Instance.new("TextButton")
+	button.Size = UDim2.new(1,-10,0,50)
+	button.BackgroundColor3 = Color3.fromRGB(35,35,35)
+	button.TextColor3 = Color3.new(1,1,1)
+	button.Font = Enum.Font.GothamBold
+	button.TextScaled = true
+	button.Text = text
+	button.Parent = scroll
+
+	Instance.new("UICorner", button).CornerRadius = UDim.new(0,14)
+
+	return button
+end
+
+-- BUTTONS
+local flyButton = createButton("FLY OFF")
+local noclipButton = createButton("NOCLIP OFF")
+local espButton = createButton("ESP OFF")
+local unstickButton = createButton("DESGRUDAR")
+
+-- PLAYER TITLE
+local playerTitle = Instance.new("TextLabel")
+playerTitle.Size = UDim2.new(1,-10,0,40)
+playerTitle.BackgroundTransparency = 1
+playerTitle.Text = "JOGADORES"
+playerTitle.TextScaled = true
+playerTitle.Font = Enum.Font.GothamBold
+playerTitle.TextColor3 = Color3.new(1,1,1)
+playerTitle.Parent = scroll
+
+-- PLAYER LIST
+local playerFrame = Instance.new("Frame")
+playerFrame.Size = UDim2.new(1,-10,0,250)
+playerFrame.BackgroundColor3 = Color3.fromRGB(30,30,30)
+playerFrame.Parent = scroll
+
+Instance.new("UICorner", playerFrame).CornerRadius = UDim.new(0,14)
+
+local playerScroll = Instance.new("ScrollingFrame")
+playerScroll.Size = UDim2.new(1,-10,1,-10)
+playerScroll.Position = UDim2.new(0,5,0,5)
+playerScroll.CanvasSize = UDim2.new(0,0,0,0)
+playerScroll.BackgroundTransparency = 1
+playerScroll.Parent = playerFrame
+
+local playerLayout = Instance.new("UIListLayout")
+playerLayout.Padding = UDim.new(0,5)
+playerLayout.Parent = playerScroll
+
+-- RGB LOOP
+RunService.RenderStepped:Connect(function()
+
+	rgb += 0.005
+
+	stroke.Color = Color3.fromHSV(rgb % 1,1,1)
+end)
+
+-- FLY SYSTEM
 local flying = false
 local flyConnection
 
@@ -107,11 +148,15 @@ flyButton.MouseButton1Click:Connect(function()
 
 		flyConnection = RunService.RenderStepped:Connect(function()
 
-			if humanoid and hrp then
+			local cam = workspace.CurrentCamera
 
-				hrp.Velocity = humanoid.MoveDirection * 80 + Vector3.new(0,2,0)
+			local move = humanoid.MoveDirection
 
-			end
+			local direction =
+				(cam.CFrame.LookVector * move.Z) +
+				(cam.CFrame.RightVector * move.X)
+
+			hrp.Velocity = direction * 80 + Vector3.new(0,2,0)
 		end)
 
 	else
@@ -127,77 +172,133 @@ flyButton.MouseButton1Click:Connect(function()
 	end
 end)
 
--- GRUDAR
-local alignPosition
-local alignOrientation
-local attachment0
-local attachment1
+-- NOCLIP
+local noclip = false
 
-local function unstickPlayer()
+noclipButton.MouseButton1Click:Connect(function()
 
-	if alignPosition then
-		alignPosition:Destroy()
-		alignPosition = nil
+	noclip = not noclip
+
+	noclipButton.Text =
+		noclip and "NOCLIP ON" or "NOCLIP OFF"
+end)
+
+RunService.Stepped:Connect(function()
+
+	if noclip and character then
+
+		for _, v in pairs(character:GetDescendants()) do
+
+			if v:IsA("BasePart") then
+				v.CanCollide = false
+			end
+		end
+	end
+end)
+
+-- ESP
+local espEnabled = false
+local espObjects = {}
+
+local function createESP(plr)
+
+	if plr == player then
+		return
 	end
 
-	if alignOrientation then
-		alignOrientation:Destroy()
-		alignOrientation = nil
-	end
+	local highlight = Instance.new("Highlight")
+	highlight.FillTransparency = 0.5
+	highlight.OutlineTransparency = 0
+	highlight.Parent = plr.Character
 
-	if attachment0 then
-		attachment0:Destroy()
-		attachment0 = nil
-	end
-
-	if attachment1 then
-		attachment1:Destroy()
-		attachment1 = nil
-	end
+	espObjects[plr] = highlight
 end
 
-local function stickPlayer(target)
+local function removeESP()
 
-	unstickPlayer()
+	for _, esp in pairs(espObjects) do
+		if esp then
+			esp:Destroy()
+		end
+	end
+
+	espObjects = {}
+end
+
+espButton.MouseButton1Click:Connect(function()
+
+	espEnabled = not espEnabled
+
+	espButton.Text =
+		espEnabled and "ESP ON" or "ESP OFF"
+
+	if espEnabled then
+
+		for _, plr in pairs(Players:GetPlayers()) do
+
+			if plr.Character then
+				createESP(plr)
+			end
+		end
+
+	else
+
+		removeESP()
+	end
+end)
+
+-- STICK PLAYER
+local alignPos
+local alignOri
+local att0
+local att1
+
+local function unstick()
+
+	if alignPos then alignPos:Destroy() end
+	if alignOri then alignOri:Destroy() end
+	if att0 then att0:Destroy() end
+	if att1 then att1:Destroy() end
+end
+
+unstickButton.MouseButton1Click:Connect(function()
+	unstick()
+end)
+
+local function stickToPlayer(target)
+
+	unstick()
 
 	if target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
 
 		local targetHRP = target.Character.HumanoidRootPart
 
-		attachment0 = Instance.new("Attachment")
-		attachment0.Parent = hrp
+		att0 = Instance.new("Attachment", hrp)
+		att1 = Instance.new("Attachment", targetHRP)
 
-		attachment1 = Instance.new("Attachment")
-		attachment1.Parent = targetHRP
+		alignPos = Instance.new("AlignPosition")
+		alignPos.Attachment0 = att0
+		alignPos.Attachment1 = att1
+		alignPos.MaxForce = 999999
+		alignPos.Responsiveness = 200
+		alignPos.RigidityEnabled = true
+		alignPos.Parent = hrp
 
-		alignPosition = Instance.new("AlignPosition")
-		alignPosition.Attachment0 = attachment0
-		alignPosition.Attachment1 = attachment1
-		alignPosition.RigidityEnabled = true
-		alignPosition.MaxForce = 999999
-		alignPosition.Responsiveness = 200
-		alignPosition.Parent = hrp
-
-		alignOrientation = Instance.new("AlignOrientation")
-		alignOrientation.Attachment0 = attachment0
-		alignOrientation.Attachment1 = attachment1
-		alignOrientation.RigidityEnabled = true
-		alignOrientation.MaxTorque = 999999
-		alignOrientation.Responsiveness = 200
-		alignOrientation.Parent = hrp
-
-		hrp.CFrame = targetHRP.CFrame * CFrame.new(0,0,2)
+		alignOri = Instance.new("AlignOrientation")
+		alignOri.Attachment0 = att0
+		alignOri.Attachment1 = att1
+		alignOri.MaxTorque = 999999
+		alignOri.Responsiveness = 200
+		alignOri.RigidityEnabled = true
+		alignOri.Parent = hrp
 	end
 end
 
-unstick.MouseButton1Click:Connect(function()
-	unstickPlayer()
-end)
-
--- ATUALIZAR JOGADORES
+-- PLAYER LIST
 local function refreshPlayers()
 
-	for _, v in pairs(scrolling:GetChildren()) do
+	for _, v in pairs(playerScroll:GetChildren()) do
+
 		if v:IsA("TextButton") then
 			v:Destroy()
 		end
@@ -208,28 +309,34 @@ local function refreshPlayers()
 		if plr ~= player then
 
 			local btn = Instance.new("TextButton")
-			btn.Size = UDim2.new(1,-5,0,40)
-			btn.Text = plr.Name
+			btn.Size = UDim2.new(1,-5,0,45)
+			btn.BackgroundColor3 = Color3.fromRGB(45,45,45)
+			btn.TextColor3 = Color3.new(1,1,1)
 			btn.TextScaled = true
-			btn.BackgroundColor3 = Color3.fromRGB(70,70,70)
-			btn.Parent = scrolling
+			btn.Font = Enum.Font.GothamBold
+			btn.Text = "TP "..plr.Name
+			btn.Parent = playerScroll
 
-			Instance.new("UICorner", btn)
+			Instance.new("UICorner", btn).CornerRadius = UDim.new(0,12)
 
 			btn.MouseButton1Click:Connect(function()
-				stickPlayer(plr)
+
+				if plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+
+					hrp.CFrame =
+						plr.Character.HumanoidRootPart.CFrame
+						* CFrame.new(0,0,3)
+
+					stickToPlayer(plr)
+				end
 			end)
 		end
 	end
 
 	task.wait()
 
-	scrolling.CanvasSize = UDim2.new(
-		0,
-		0,
-		0,
-		layout.AbsoluteContentSize.Y + 10
-	)
+	playerScroll.CanvasSize =
+		UDim2.new(0,0,0,playerLayout.AbsoluteContentSize.Y + 10)
 end
 
 refreshPlayers()
@@ -237,8 +344,8 @@ refreshPlayers()
 Players.PlayerAdded:Connect(refreshPlayers)
 Players.PlayerRemoving:Connect(refreshPlayers)
 
--- MINIMIZAR
-local original = frame.Size
+-- MINIMIZE
+local originalSize = frame.Size
 
 minimize.MouseButton1Click:Connect(function()
 
@@ -246,23 +353,25 @@ minimize.MouseButton1Click:Connect(function()
 
 	if minimized then
 
-		frame.Size = UDim2.new(0,240,0,50)
+		TweenService:Create(
+			frame,
+			TweenInfo.new(0.25),
+			{Size = UDim2.new(0,260,0,50)}
+		):Play()
 
-		flyButton.Visible = false
-		unstick.Visible = false
-		scrolling.Visible = false
-		label.Visible = false
+		scroll.Visible = false
 
 		minimize.Text = "+"
 
 	else
 
-		frame.Size = original
+		TweenService:Create(
+			frame,
+			TweenInfo.new(0.25),
+			{Size = originalSize}
+		):Play()
 
-		flyButton.Visible = true
-		unstick.Visible = true
-		scrolling.Visible = true
-		label.Visible = true
+		scroll.Visible = true
 
 		minimize.Text = "-"
 	end
