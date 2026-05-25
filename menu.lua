@@ -1,4 +1,4 @@
---// MOBILE HUB V2 - ROBLOX LUAU
+--// MOBILE HUB FULL HD+ (1600x720)
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -9,7 +9,6 @@ local character = player.Character or player.CharacterAdded:Wait()
 local humanoid = character:WaitForChild("Humanoid")
 local hrp = character:WaitForChild("HumanoidRootPart")
 
--- RELOAD CHARACTER
 player.CharacterAdded:Connect(function(char)
 	character = char
 	humanoid = char:WaitForChild("Humanoid")
@@ -24,35 +23,34 @@ gui.Parent = player.PlayerGui
 
 -- MAIN
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0,190,0,320)
-frame.Position = UDim2.new(0,12,0.5,-160)
+frame.Size = UDim2.new(0,170,0,280)
+frame.Position = UDim2.new(0,10,0.5,-140)
 frame.BackgroundColor3 = Color3.fromRGB(20,20,20)
-frame.BackgroundTransparency = 0.1
+frame.BackgroundTransparency = 0.15
 frame.Active = true
 frame.Draggable = true
 frame.Parent = gui
 
-Instance.new("UICorner", frame).CornerRadius = UDim.new(0,14)
+Instance.new("UICorner", frame).CornerRadius = UDim.new(0,12)
 
--- RGB OUTLINE
+-- RGB BORDER
 local stroke = Instance.new("UIStroke")
 stroke.Thickness = 2
 stroke.Parent = frame
 
--- RGB LOOP
 local rgb = 0
 
 RunService.RenderStepped:Connect(function()
 
-	rgb += 0.003
+	rgb += 0.002
 
 	stroke.Color = Color3.fromHSV(rgb % 1,1,1)
 end)
 
 -- TITLE
 local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1,-45,0,35)
-title.Position = UDim2.new(0,10,0,5)
+title.Size = UDim2.new(1,-40,0,28)
+title.Position = UDim2.new(0,8,0,5)
 title.BackgroundTransparency = 1
 title.Text = "MOBILE HUB"
 title.Font = Enum.Font.GothamBold
@@ -64,8 +62,8 @@ title.Parent = frame
 local minimized = false
 
 local minimize = Instance.new("TextButton")
-minimize.Size = UDim2.new(0,30,0,30)
-minimize.Position = UDim2.new(1,-35,0,7)
+minimize.Size = UDim2.new(0,26,0,26)
+minimize.Position = UDim2.new(1,-30,0,6)
 minimize.Text = "-"
 minimize.Font = Enum.Font.GothamBold
 minimize.TextScaled = true
@@ -77,30 +75,30 @@ Instance.new("UICorner", minimize).CornerRadius = UDim.new(1,0)
 
 -- SCROLL
 local scroll = Instance.new("ScrollingFrame")
-scroll.Size = UDim2.new(1,-12,1,-50)
-scroll.Position = UDim2.new(0,6,0,42)
+scroll.Size = UDim2.new(1,-10,1,-42)
+scroll.Position = UDim2.new(0,5,0,36)
 scroll.BackgroundTransparency = 1
-scroll.ScrollBarThickness = 3
+scroll.ScrollBarThickness = 2
 scroll.CanvasSize = UDim2.new(0,0,0,500)
 scroll.Parent = frame
 
 local layout = Instance.new("UIListLayout")
-layout.Padding = UDim.new(0,6)
+layout.Padding = UDim.new(0,5)
 layout.Parent = scroll
 
 -- BUTTON CREATOR
 local function createButton(text)
 
 	local button = Instance.new("TextButton")
-	button.Size = UDim2.new(1,-4,0,40)
+	button.Size = UDim2.new(1,-4,0,34)
 	button.BackgroundColor3 = Color3.fromRGB(35,35,35)
 	button.TextColor3 = Color3.new(1,1,1)
-	button.Font = Enum.Font.GothamBold
 	button.TextScaled = true
+	button.Font = Enum.Font.GothamBold
 	button.Text = text
 	button.Parent = scroll
 
-	Instance.new("UICorner", button).CornerRadius = UDim.new(0,12)
+	Instance.new("UICorner", button).CornerRadius = UDim.new(0,10)
 
 	return button
 end
@@ -113,23 +111,23 @@ local unstickButton = createButton("DESGRUDAR")
 
 -- PLAYERS TITLE
 local pTitle = Instance.new("TextLabel")
-pTitle.Size = UDim2.new(1,0,0,30)
+pTitle.Size = UDim2.new(1,0,0,25)
 pTitle.BackgroundTransparency = 1
 pTitle.Text = "PLAYERS"
-pTitle.TextScaled = true
 pTitle.Font = Enum.Font.GothamBold
+pTitle.TextScaled = true
 pTitle.TextColor3 = Color3.new(1,1,1)
 pTitle.Parent = scroll
 
 -- PLAYER LIST
 local playerList = Instance.new("ScrollingFrame")
-playerList.Size = UDim2.new(1,-2,0,120)
-playerList.BackgroundColor3 = Color3.fromRGB(30,30,30)
-playerList.CanvasSize = UDim2.new(0,0,0,0)
+playerList.Size = UDim2.new(1,-2,0,95)
+playerList.BackgroundColor3 = Color3.fromRGB(28,28,28)
 playerList.ScrollBarThickness = 2
+playerList.CanvasSize = UDim2.new(0,0,0,0)
 playerList.Parent = scroll
 
-Instance.new("UICorner", playerList).CornerRadius = UDim.new(0,12)
+Instance.new("UICorner", playerList).CornerRadius = UDim.new(0,10)
 
 local playerLayout = Instance.new("UIListLayout")
 playerLayout.Padding = UDim.new(0,4)
@@ -149,20 +147,16 @@ flyButton.MouseButton1Click:Connect(function()
 
 		flyConnection = RunService.RenderStepped:Connect(function()
 
-			if humanoid and hrp then
+			local cam = workspace.CurrentCamera
+			local moveDir = humanoid.MoveDirection
 
-				local cam = workspace.CurrentCamera
-				local moveDir = humanoid.MoveDirection
+			local move =
+				(cam.CFrame.RightVector * moveDir.X) +
+				(cam.CFrame.LookVector * moveDir.Z)
 
-				-- FIX JOYSTICK
-				local move =
-					(cam.CFrame.RightVector * moveDir.X) +
-					(cam.CFrame.LookVector * moveDir.Z)
-
-				hrp.Velocity =
-					Vector3.new(move.X,0,move.Z) * 75
-					+ Vector3.new(0,2,0)
-			end
+			hrp.Velocity =
+				Vector3.new(move.X,0,move.Z) * 60
+				+ Vector3.new(0,2,0)
 		end)
 
 	else
@@ -191,7 +185,7 @@ end)
 
 RunService.Stepped:Connect(function()
 
-	if noclip and character then
+	if noclip then
 
 		for _, v in pairs(character:GetDescendants()) do
 
@@ -217,7 +211,7 @@ local function removeESP()
 	espTable = {}
 end
 
-local function addESP(plr)
+local function createESP(plr)
 
 	if plr == player then
 		return
@@ -244,7 +238,7 @@ espButton.MouseButton1Click:Connect(function()
 	if espEnabled then
 
 		for _, plr in pairs(Players:GetPlayers()) do
-			addESP(plr)
+			createESP(plr)
 		end
 
 	else
@@ -315,7 +309,7 @@ local function refreshPlayers()
 		if plr ~= player then
 
 			local btn = Instance.new("TextButton")
-			btn.Size = UDim2.new(1,-4,0,35)
+			btn.Size = UDim2.new(1,-4,0,30)
 			btn.BackgroundColor3 = Color3.fromRGB(45,45,45)
 			btn.TextColor3 = Color3.new(1,1,1)
 			btn.Font = Enum.Font.GothamBold
@@ -323,7 +317,7 @@ local function refreshPlayers()
 			btn.Text = plr.Name
 			btn.Parent = playerList
 
-			Instance.new("UICorner", btn).CornerRadius = UDim.new(0,10)
+			Instance.new("UICorner", btn).CornerRadius = UDim.new(0,8)
 
 			btn.MouseButton1Click:Connect(function()
 
@@ -364,7 +358,7 @@ minimize.MouseButton1Click:Connect(function()
 		TweenService:Create(
 			frame,
 			TweenInfo.new(0.2),
-			{Size = UDim2.new(0,190,0,45)}
+			{Size = UDim2.new(0,170,0,38)}
 		):Play()
 
 		minimize.Text = "+"
@@ -381,4 +375,4 @@ minimize.MouseButton1Click:Connect(function()
 
 		minimize.Text = "-"
 	end
-end).
+end)
